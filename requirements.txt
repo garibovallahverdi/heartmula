@@ -1,7 +1,5 @@
-torch>=2.0.0
 runpod
 huggingface_hub
-gradio
+torch>=2.0.0
 librosa
 soundfile
-numpy
