@@ -1,35 +1,29 @@
 FROM runpod/pytorch:2.0.1-py3.10-cuda11.8.0-devel-ubuntu22.04
 
-# Çalışma dizini
 WORKDIR /workspace
 
-# Sistem bağımlılıkları (gerekirse)
+# Sistem bağımlılıkları
 RUN apt-get update && apt-get install -y \
+    git \
     ffmpeg \
     libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Python bağımlılıkları
-COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+# HuggingFace CLI kur (hf download için)
+RUN pip install huggingface_hub
 
-# HeartMuLa kodunu kopyala (veya direkt pip ile kur)
-# Eğer heartlib pip'te yoksa repoyu klonlayıp kurman gerek:
+# heartlib reposunu klonla ve kur
 RUN git clone https://github.com/HeartMuLa/heartlib.git && \
     cd heartlib && \
     pip install -e .
 
-# Modelleri indir (build sırasında veya runtime'da)
-# Build'de indirmek imaj boyutunu büyütür ama cold start'ı hızlandırır
-RUN python -c "\
-from huggingface_hub import snapshot_download; \
-snapshot_download(repo_id='HeartMuLa/HeartMuLa-oss-3B-happy-new-year', local_dir='./ckpt/HeartMuLa-oss-3B'); \
-snapshot_download(repo_id='HeartMuLa/HeartCodec-oss', local_dir='./ckpt/HeartCodec-oss'); \
-"
+# Modelleri indir (RESMİ ADIMLAR)
+RUN hf download --local-dir './ckpt' 'HeartMuLa/HeartMuLaGen' && \
+    hf download --local-dir './ckpt/HeartMuLa-oss-3B' 'HeartMuLa/HeartMuLa-oss-3B-happy-new-year' && \
+    hf download --local-dir './ckpt/HeartCodec-oss' 'HeartMuLa/HeartCodec-oss-20260123'
 
 # handler.py'yi kopyala
 COPY handler.py .
 
-# RunPod'ın beklendiği gibi çalıştır
+# RunPod worker'ını başlat
 CMD ["python", "-u", "handler.py"]
