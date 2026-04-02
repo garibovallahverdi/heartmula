@@ -1,0 +1,7 @@
+torch>=2.0.0
+runpod
+huggingface_hub
+gradio
+librosa
+soundfile
+numpy
